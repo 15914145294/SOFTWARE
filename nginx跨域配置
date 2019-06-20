@@ -1,0 +1,68 @@
+
+    server {
+        listen       8086;
+        server_name  0.0.0.0;
+        
+        charset utf-8;
+        
+        # sub_filter_types    application/json application/atom+xml application/xml application/xhtml+xml;
+        # sub_filter_once     off;
+        # sub_filter          xxxx;
+                    
+        location / {
+           if ($request_method = "OPTIONS" ) {
+                add_header "Access-Control-Allow-Origin"  *;
+                add_header "Access-Control-Allow-Methods" "GET, POST, OPTIONS, HEAD, PUT, DELETE";
+                add_header "Access-Control-Allow-Headers" "Authorization, Origin, X-Requested-With, Content-Type, Accept, X-Service-By, enctype";
+                return 200;
+            }
+            add_header          'Access-Control-Allow-Origin'       '*';
+            proxy_set_header 'Access-Control-Allow-origin' '*';
+            proxy_set_header 'Access-Control-Allow-Methods' 'GET,POST,OPTIONS,PUT,DELETE';
+            proxy_pass         http://xxxx:8086;
+        }
+    }
+    server {
+        listen       9014;
+        server_name  0.0.0.0;
+        
+        charset utf-8;
+        
+        # sub_filter_types    application/json application/atom+xml application/xml application/xhtml+xml;
+        # sub_filter_once     off;
+        # sub_filter          xxxx;
+                   
+        location / {
+           
+            add_header          'Access-Control-Allow-Origin'       '*';
+            proxy_hide_header Access-Control-Allow-Origin;
+            #proxy_ignore_headers Access-Control-Allow-Origin;
+            proxy_set_header    AppCode                             'Zac.TicketSystem.Admin';
+            proxy_set_header    AppSecret                          '123456';
+            proxy_set_header    AppVersion                          '3.0.1';
+            proxy_pass         http://xxxx/loan/;
+            #proxy_pass         http://domain.com.cn;
+        }
+}
+    server {
+        listen       9013;
+        server_name  0.0.0.0;
+
+        charset utf-8;
+
+        # sub_filter_types    application/json application/atom+xml application/xml application/xhtml+xml;
+        # sub_filter_once     off;
+        # sub_filter          10.xxx    10.18.xxx;
+
+        location / {
+         
+            add_header          'Access-Control-Allow-Origin'       '*';
+            proxy_hide_header Access-Control-Allow-Origin;
+            #proxy_ignore_headers Access-Control-Allow-Origin;
+            proxy_set_header    AppCode                             'Zac.TicketSystem.Admin';
+            proxy_set_header    AppSecret                          '123456';
+            proxy_set_header    AppVersion                          '3.0.1';
+            proxy_pass         http://xxxx/trade/;
+            #proxy_pass         http://xxxx;
+        }
+}
