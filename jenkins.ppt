@@ -1,0 +1,321 @@
+
+
+
+jenkins自动部署说明文件
+文档编号：
+版 本 号：V3.0
+日    期：2017-11-06
+
+
+
+
+
+
+
+ 
+
+文件修订记录
+版次	修订日期	摘要	修改人	批准
+V1.0	2016-11-01	初稿	余开华	
+V2.0	2017-03-29	完善自动发布配置内容	宋玉方	
+V2.1	2017-03-30	完善自动发布配置	周楚贤	
+V2.2	2017-04-05	完善自动发布配置	宋玉方	
+V3.0	2017-11-06	适配生产环境部署，新增自动上传、备份、回滚等操作。细化安装等操作步骤。	蔡泽智	
+V3.1	2017-11-06	创建编译项目、自动发布项目、回滚项目及权限管理等的相关配置	宋玉方	
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+
+
+
+
+
+
+一、下载
+下载地址：https://jenkins.io/
+目前采用版本：Jenkins 2.73.2
+Jenkins安装包：windows-installer
+二、安装
+建议安装位置：D:\Program Files (x86)\Jenkins
+设置管理员账号：yw
+设置管理员密码：******
+安装选择步骤:
+1、安装时选择Select plugins to install
+ 
+2、选择添加的插件有：
+因E时贷使用的是GitLab作为源代码管理，故需要选择安装
+•	Git插件： Git plugin
+•	Gitlab插件：GitLab Plugin（截图有误）
+ 
+
+因E时贷生成环境&Uat环境为分布式部署环境，故需要安装：
+•	Windows Slaves插件
+ 
+因E时贷使用的是.net技术开发，故需要安装：
+•	MSBuild Plugin
+ 
+选择完插件后，安装大概如下（截图为网上参考图片）
+ 
+到了这一步，需要配置第一个管理员的账号密码：
+ 
+完成后：
+ 
+点击Start using Jenkins按钮开始进入主界面：
+ 
+三、添加插件
+由于需要将已编译完成的文件传输到各个负载，采用简单的传输方式（通过Copy data to workspace插件完成），不使用FTP、SSH、PowerShell等复杂方式。
+ 
+四、添加全局配置
+系统管理 > Configure Global Security
+ 
+配置Git ：系统管理 > ConfigureTools
+ 
+
+配置MSBuild：系统管理 > ConfigureTools
+ 
+
+五、设置应用服务器（从服务器Slave）
+系统管理 > 管理节点 > 新建节点
+
+新建第一个节点（第二个节点可以通过“复制现有节点”处理）
+1、第一步
+ 
+2、第二步，节点详细配置
+ 
+六、应用服务器安装Jenkins客户端
+在应用服务器浏览器中直接输入Jenkins服务地址：http://10.18.192.15:8080/computer/
+ 
+1、新建D盘Jenkins目录，作为Jenkins的工作目录
+2、点击上述截图的Launch，下载文件至D:\Jenkins目录
+3、点击slave.jar，下载文件至D:\Jenkins目录
+4、在D:\Jenkins目录新建文件startJenkins.bat文件，写入指令如上截图红色圈的指令
+5、双击startJenkins.bat启动Jenkins客户端。
+注意事项：
+Jenkins服务器防火墙开通入站规则：8080、9080端口
+应用服务器防火墙开通出站规则：8080、9080端口
+成功后：
+
+七、创建编译项目
+1、使用管理员账号登录jenkins系统，点击新建，输入项目名称，选择添加一个自由风格的项目，点击ok按钮，创建一个编译项目
+ 
+
+2、配置丢弃旧构建的天数及个数：
+ 
+3、分别配置需要构建的项目名称、构建类型、版本分支、构建方法、构建文件输出的目录、构建文件压缩后输出的目录等
+ 
+
+ 
+
+ 
+
+4、配置源码地址、版本选择方式、源码选择方式等
+
+ 
+5、配置nugit包获取方式及获取地址、构建相关参数
+
+ 
+
+6、配置构建过程中批处理脚本：
+ 
+八、创建自动发布项目
+1、使用管理员账号登录jenkins系统，点击新建，输入项目名称，选择构建一个多配置项目，点击ok按钮，创建一个编译项目
+ 
+2、配置丢弃旧构建的天数及个数：
+ 
+3、配置需要发布的项目、发布文件存放目录（即www文件夹目录）、备份文件存放路径
+ 
+4、配置需要执行项目的机器（勾选生效）
+ 
+5、配置获取发布文件的工作目录（即编译项目中配置的‘构建文件压缩后输出的目录’）
+ 
+6、配置构建过程中需要执行批处理脚本：
+ 
+九、创建回滚项目
+1、使用管理员账号登录jenkins系统，点击新建，输入项目名称，选择构建一个多配置项目，点击ok按钮，创建一个编译项目
+ 
+2、配置构建的项目、需要还原的构建版本、需要还原的备份文件存放目录（自动发布项目中配置的‘备份文件存放路径’）、需要还原的文件的目标目录（即www文件夹目录）
+ 
+ 
+3、配置需要执行项目的机器（勾选生效）
+ 
+4、配置项目构建过程中需要执行的批处理脚本
+ 
+十、ESD自动化发布使用配置（权限管理）
+1、使用管理员登录jenkins系统，安装Role-based Authorization Strategy插件
+ 
+2、添加授权策略（安装插件后，进入系统设置页面）
+ 
+3、点击“系统管理”-->Manage and Assign Roles进入角色管理页面
+ 
+4、点击选择Manager Roles，配置为下图模板后点击保存，配置角色权限和项目权限（关于pattern处的填写：官方文档介绍该选项支持正则表达式，如Roger-.表示所有以Roger-开头的项目， (?i)roger-.*表示以roger-开头的项目并且不区分大小写， 如以ABC开头的项目可以配置为ABC|ABC.*， ）
+ 
+5、新建用户：管理员登录jenkins，首页系统管理>用户管理>新建用户
+ 
+ 
+6、配置Assign Roles：系统配置 – Manage and Assign Roles – Assign Roles
+分别配置账号的角色和账号管理的项目
+ 
+7、登录后只能管理其有权限管理的项目
+ 
+
+十一、ESD测试环境自动化发布使用及配置
+1、自动发布使用
+Jenkins服务器地址：http://10.18.192.119:8082/jenkins/
+不需要用户和密码登录
+1、打开Jenkins服务器地址，左边列表显示功能菜单，右边显示所有项目
+ 
+2、点击选择E时贷版本测试发布
+ 
+3、点击选择左侧build with Parameters，进入参数选择
+ 
+4、需要输入3个参数，包括发布站点、发布环境、发布版本
+ 
+5、选择完成，点击开始构建就开始发布，左下角显示构建进度
+ 
+ 
+6、构建完成后执行成功显示蓝色，执行失败显示红色，正在执行图标闪烁
+自动部署使用增量发布，只发布当前版本在Git上提交更新的部分文件，忽略服务器上已存在额外文件，右侧列出更新内容
+ 
+7、点击修改记录detail，显示详细信息
+ 
+2、自动发布配置
+1、jenkins项目建立
+a.打开首页，点击新建
+
+ 
+b、输入需要新建项目的名称，选择‘构建一个自由风格的软件项目’，点击ok，进行新建。
+
+ 
+c、配置丢弃构建参数（参数值无具体要求），选择“丢弃旧的构建”，输入示例参数（Strategy默认值不需修改，构建天数默认为空，构建的最大个数默认10）：
+ 
+
+d、选择参数化构建过程，点击添加参数
+ 
+e、点击选择choice选项，输入Name参数值（测试环境：test_enviornment、集成环境：integrated_enviornment、预发布环境：Pre_Release_enviorment），Choices参数值与Name参数值保持一致；
+
+ 
+
+f、再次点击“添加参数”（图1所示），添加一个String Parameter 参数，输入参数值（选择发布的版本），发布版本参数是（测试环境：test_version、集成环境：integrated_ version、预发布环境：Pre_Release_ version）“默认值”选项feature/feature-（在发布时可以修改）
+图1：
+ 
+图2
+ 
+g、再次点击“添加参数”，添加一个choice 参数，输入参数值（选择发布的站点项目），参数：name（release_project）、choices（Zac.Esd.Web、Zac.Esd.Admin，即解决方案中包含的项目名）。
+注：如果一个解决方案中只有一个项目，则此项不用配置（参考授权中心项目），如果一个解决方案中有多个项目，则此项需配置（参考后台项目）
+ 
+
+
+h、勾选Restrict where this project can be run，表示在节点服务器执行，选择执行的服务器为testpublish15，对应发布服务器为10.18.192.15
+
+ 
+
+i、在源码管理选项选择Git选项，输入源码地址库（源码地址库需登录gitlab系统获取；
+获取方法：浏览器输入地址http://gitlab.zhongan.com.cn；输入账号密码（songyf/za123456），不同项目对应不同地址；
+ 
+例：授权中心http://gitlab.zhongan.com.cn/esd-group/Zac.AuthorizationCenter.git）
+、账号密码、版本选择参数（${release_version}）、发布机器（选择testpublish15）、源码库浏览器（选择自动）
+ 
+
+j、在“构建->增加构建步骤”项添加一个Execute Windows batch command 构建步骤，输入参数值（构建时下载支持库，需对应需要发布的项目）
+
+
+ 
+参数内容：D:\java\nuget.exe restore "%WORSPACE%ZAEsd.Solution.sln" -Source "http://nuget.zhongan.com.cn/nuget"
+注：D:\java\nuget.exe（10.18.192.15服务器，get插件安装目录）
+restore "%WORSPACE%zac.esd.sln"—发布服务器名称  项目名称路径（例：工作流：src\Zac.WorkManagement.sln
+-Source http://nuget.zhongan.com.cn/nuget--是指原码地址
+
+k、再添加一个Build a Visual Studio project or solution using MSBuild，分别输入发布服务器、项目名称、配置参数（编译代码使用MSBuild，调用10.18.192.15服务器执行，先在本地编译完成，然后发布到远程服务器上）
+ 
+MSBuild Version:选择msbuild_testpublish15
+MsBuild Build File:src\zac.esd.sln（需要构建的项目，如果一个解决方案中只有一个项目（参考授权中心），则g项不用配置，此处输入解决方案的名称，如果一个解决方案中有多个项目（参考后台项目），则g项需配置每个项目的名称，此处参数输入src\${release_project}\${release_project}.csproj，）
+${release_project}\${release_project}.csproj----在g项中配置的参数名
+Command Line Arguments，默认输入内容如下：
+/t:Rebuild
+/p:Configuration=${release_environment}
+/p:PublishProfile=${release_environment}
+/p:DeployOnBuild=true
+/p:AllowUntrustedCertificate=True
+/p:password=Za888888
+/p:ExcludeGeneratedDebugSymbol=true
+/p:ExcludeXmlAssemblyFiles=false
+/p:DebugSymbols=false 
+/p:DefineConstants=""
+/p:DebugType=none
+/p:SkipExtraFilesOnServer=True
+
+l、点击“保存”
+ 
+
+m、如要使用全量发布，需要修改配置项，点击配置，拖动到最下面
+ 
+查看MSBuild选项，修改参数项
+/p:SkipExtraFilesOnServer=True 增量，跳过额外文件，发布覆盖本地文件
+改为/p:SkipExtraFilesOnServer=False 全量，先清除本地文件目录，再发布复制全部文件
+ 
+2、自动发布远程服务器配置
+
+a、登录发布目标的远程服务器，打开服务器管理器>配置>本地用户和组>用户，新建用户：WDeployAdmin，输入密码和确认密码：Za888888
+ 
+b、新用户加入管理员组
+ 
+c、安装WebDeploy软件，一直点击下一步安装，选择Complete完整安装（发布服务器安装）
+ 
+ 
+d、打开服务器管理器>角色>添加角色，添加Windows部署服务，一直点击下一步，最后安装添加
+ 
+ 
+e、打开服务，确认Web Management Service服务已经启动
+ 
+f、打开IIS管理器，选择管理服务，配置如下，勾选启用远程连接和Windows凭据或IIS管理器凭据
+ 
+ 
+g、IIS管理器用户，添加用户WDeployAdmin密码Za888888，输入用户密码和确认密码
+ 
+h、选择管理员委派，点击编辑功能设置，勾选允许管理员绕过规则
+ 
+ 
+注：若无管理服务委派功能，则需安装ISS功能插件（进入web平台安装程序，找到web部署工具2.1、Web部署工具3.5）
+ 
+
+
+i、打开对应站点主页，选择IIS管理器权限，点击允许用户，选择IIS管理器，选择WDeployAdmin用户，添加成功完成服务器配置
+ 
+
+ 
+ 
+
+j、文件权限设置（例如日志中心）：
+找到部署系统的文件夹Zac.Esd.LogCenter，在D:\AdminBack路径下
+ 
+在文件夹上右键点击属性设置权限，将用户WDeployAdmin所在的用户组Administrators、IIS_IUSRS和Users三个用户组的权限全部打开。
+ 
+
+注：使用jenkins自动部署还需开通发布服务器（10.18.192.15）访问远程服务器（172.21.2.2）的8172端口（Web Deploy部署服务的默认端口），即10.18.192.15--->172.21.2.2:8172的权限。
+
+
+
+3、配置文件配置
+a、在Visual Studio 打开需要配置的解决方案（如：AuthorizationCenter），点击发布，新建一个Uat发布模式
+ 
+b、在连接配置时输入Server、Site name、user name等参数，密码项不用输入，在jenkins中已有配置，点击关闭后保存，需提交代码。
+ 
+①server项输入值：此项为配置发布到远程服务器的站点，需连接远程服务器（如预发布服务器），打开IIS应用服务器，选择相应的站点（如授权中心），点击右键，选择部署，点击‘启用web deploy发布’，复制‘指定发布服务器连接的URL’框内的URL地址，粘贴纸server输入框中即可
+ 
+
+ 
+②site name项输入值：使用站点的名称（如Zac.sd.authorizationcenter）
+③user name项输入值：WDeployAdmin
+3、自动发布本地配置文件
+1、需要配置5个站点的web.config和对应.pubxml文件，修改.csproj文件，增加到对应的VS项目下，配置文件如下：
+
+ 
+例：工作流Uat配置文件
+ 
